@@ -12,5 +12,4 @@ public class Client {
     public Client() {
         api = new V1.Builder().build();
     }
-
 }
