@@ -1,10 +1,22 @@
 package com.chatspry.model;
 
-import lombok.Data;
+import com.google.gson.annotations.SerializedName;
+
+import java.util.Calendar;
+import java.util.UUID;
 
 /**
  * Defines the User entity
  */
-@Data
-public class User extends Entity {
+public class User {
+
+    public UUID     id;
+    public String   name;
+    public String   handle;
+    @SerializedName("created_at")
+    public Calendar createdAt;
+    @SerializedName("updated_at")
+    public Calendar updatedAt;
+    public boolean  guest;
+
 }
