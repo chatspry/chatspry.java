@@ -2,23 +2,43 @@ package com.chatspry;
 
 import com.chatspry.model.AccessToken;
 import com.chatspry.payload.LoginPayload;
+import com.chatspry.payload.RegisterUserPayload;
+import com.chatspry.response.RegistrationResponse;
+import com.chatspry.response.UserResponse;
 import com.google.gson.Gson;
-import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
 import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
 import retrofit.http.Body;
+import retrofit.http.GET;
 import retrofit.http.POST;
+import retrofit.http.Path;
 import rx.Observable;
+
+import java.util.UUID;
 
 /**
  * Defines the API contract for clients
  */
 public interface API {
 
+    //region >> OAuth
+
     @POST("/v1/oauth/access")
     public Observable<AccessToken> login(@Body LoginPayload payload);
+
+    //endregion
+
+    //region >> User
+
+    @GET("/v1/user/{id}")
+    public Observable<UserResponse> getUser(@Path("id") UUID id);
+
+    @POST("/v1/user/{id}")
+    public Observable<RegistrationResponse> registerUser(@Path("id") UUID id, @Body RegisterUserPayload payload);
+
+    //endregion
 
     public static class Builder {
 

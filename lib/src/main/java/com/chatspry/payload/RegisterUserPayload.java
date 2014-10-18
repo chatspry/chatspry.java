@@ -1,5 +1,6 @@
 package com.chatspry.payload;
 
+import com.chatspry.model.Device;
 import com.chatspry.model.User;
 import com.google.gson.annotations.SerializedName;
 
@@ -30,6 +31,19 @@ public class RegisterUserPayload {
      * The User to register
      */
     public User user;
+
+    /**
+     * The type of device to register. Currently only {@link com.chatspry.model.Device#DEVICE_TYPE_ANDROID} and
+     * {@link com.chatspry.model.Device#DEVICE_TYPE_APPLE} are supported.
+     */
+    @SerializedName("device_type")
+    public String deviceType;
+
+    /**
+     * The {@link com.chatspry.model.Device} that should be registered to this user. This is
+     * primarily to allow GCM and APNS devices to receive push notifications.
+     */
+    public Device device;
 
     /**
      * The scopes requested, whitespace separated
