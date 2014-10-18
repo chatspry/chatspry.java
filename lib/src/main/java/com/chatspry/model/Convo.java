@@ -17,5 +17,6 @@ public class Convo {
     @SerializedName("updated_at")
     public Date   updatedAt;
     public User   user;
+    public String lang;
 
 }

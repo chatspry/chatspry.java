@@ -1,8 +1,11 @@
 package com.chatspry;
 
 import com.chatspry.model.AccessToken;
+import com.chatspry.model.Convo;
+import com.chatspry.payload.ConvoPayload;
 import com.chatspry.payload.LoginPayload;
 import com.chatspry.payload.RegisterUserPayload;
+import com.chatspry.response.ConvoResponse;
 import com.chatspry.response.RegistrationResponse;
 import com.chatspry.response.UserResponse;
 import com.google.gson.Gson;
@@ -10,10 +13,7 @@ import retrofit.RestAdapter;
 import retrofit.client.Client;
 import retrofit.client.OkClient;
 import retrofit.converter.GsonConverter;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.POST;
-import retrofit.http.Path;
+import retrofit.http.*;
 import rx.Observable;
 
 import java.util.UUID;
@@ -35,8 +35,26 @@ public interface API {
     @GET("/v1/user/{id}")
     public Observable<UserResponse> getUser(@Path("id") UUID id);
 
-    @POST("/v1/user/{id}")
+    @PUT("/v1/user/{id}")
     public Observable<RegistrationResponse> registerUser(@Path("id") UUID id, @Body RegisterUserPayload payload);
+
+    //endregion
+
+    //region >> Convo
+
+    @PUT("/v1/convo/{id}")
+    public Observable<ConvoResponse> createConvo(@Header("Authorization") String authToken,
+                                                 @Path("id") UUID id,
+                                                 @Body ConvoPayload payload);
+
+    @GET("/v1/convo/{id}")
+    public Observable<ConvoResponse> getConvo(@Header("Authorization") String authToken,
+                                              @Path("id") UUID id);
+
+    @PATCH("/v1/convo/{id}")
+    public Observable<ConvoResponse> updateConvo(@Header("Authorization") String authToken,
+                                                 @Path("id") UUID id,
+                                                 @Body ConvoPayload payload);
 
     //endregion
 
