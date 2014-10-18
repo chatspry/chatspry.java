@@ -1,9 +1,7 @@
-Chatspry Java Project
+Chatspry Java Client
 =======================
 
-This project is meant to contain all Chatspry-specific Java code, as well as an Android application. Because of the
-Gradle-based structure, it should be possible to pull the project and utilise your favourite IDE to generate project
-files as well as build the artifacts.
+This project contains the Chatspry Java client, as well as all supporting code.
 
 Developing
 ----------
@@ -11,17 +9,12 @@ Developing
 This project relies on Gradle to function, and provides a gradle wrapper in the repo. It's expected that you will have
 a Java install >= 7. To build the library artifact, it should be as simple as
 
-    $ ./gradlew :lib:compile
+    $ ./gradlew compile
 
-and the Android app can be compiled with
+The code will compile against Java 6, and supports Apache Harmony and Android clients without any workarounds.
 
-    $ ./gradlew :app:assembleDebug
+### Testing
 
-The code will compile against Java 7, and all Java 7 features may be used apart from `try-with-resources` due to lack of
-support on some versions of Android.
-
-### Project Structure
-
-All general library code should be placed within the `lib` directory
-
-Application-specific code should be placed within the `app` directory
+While the code does currently contain JUnit tests, the coverage is incomplete and will be revisited at a later time.
+Code coverage is not a top priority for this library, as there is very little custom code and libraries provided by
+Square and ReactiveX are already thoroughly tested.
