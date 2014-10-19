@@ -7,8 +7,8 @@ import java.util.UUID;
  */
 public class Membership {
 
-    public UUID  id;
-    public Convo convo;
-    public User  user;
+    public UUID          id;
+    public TypedResource convo;
+    public TypedResource user;
 
 }

@@ -1,6 +1,7 @@
 package com.chatspry.test;
 
 import com.chatspry.model.AccessToken;
+import com.chatspry.model.TypedResource;
 
 import java.util.Date;
 import java.util.UUID;

@@ -1,17 +1,16 @@
 package com.chatspry;
 
 import com.chatspry.model.AccessToken;
-import com.chatspry.model.Convo;
-import com.chatspry.payload.ConvoPayload;
-import com.chatspry.payload.LoginPayload;
-import com.chatspry.payload.RegisterUserPayload;
+import com.chatspry.payload.*;
 import com.chatspry.response.ConvoResponse;
+import com.chatspry.response.InvitationResponse;
 import com.chatspry.response.RegistrationResponse;
 import com.chatspry.response.UserResponse;
 import com.google.gson.Gson;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
 import retrofit.client.OkClient;
+import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 import retrofit.http.*;
 import rx.Observable;
@@ -58,13 +57,44 @@ public interface API {
 
     //endregion
 
-    public static class Builder {
+    //region >> Activity
 
+    @POST("/v1/activity")
+    public Observable<Response> createActivity(@Header("Authorization") String authToken,
+                                               @Body ActivityPayload payload);
+
+    //endregion
+
+    //region >> Invitation
+
+    @POST("/v1/invitation")
+    public Observable<InvitationResponse> createInvitation(@Header("Authorization") String authToken,
+                                                           @Body InvitationPayload payload);
+
+    @DELETE("/v1/invitation")
+    public Observable<Response> revokeInvitation(@Header("Authorization") String authToken,
+                                                 @Body InvitationPayload payload);
+
+    //endregion
+
+    //region >> Members
+
+    @POST("/v1/member")
+    public Observable<InvitationResponse> createMembership(@Header("Authorization") String authToken,
+                                                           @Body MembershipPayload payload);
+
+    @DELETE("/v1/member")
+    public Observable<Response> deleteMembership(@Header("Authorization") String authToken,
+                                                 @Body MembershipPayload payload);
+
+    //endregion
+
+    public static class Builder {
 
         private String host;
         private Gson   gson;
         private Client client;
-
+        private String userAgent;
 
         public Builder setHost(String host) {
             this.host = host;
@@ -81,10 +111,16 @@ public interface API {
             return this;
         }
 
+        public Builder setUserAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
         public API build() {
             if(host == null) host = "http://api.chatspry.org";
             if(gson == null) gson = new Gson();
             if(client == null) client = new OkClient();
+            if(userAgent == null) userAgent = "chatspry.java/1.0.0";
 
             RestAdapter restAdapter = new RestAdapter.Builder()
                     .setEndpoint(host)

@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * Created by berwyn on 17/10/14.
@@ -55,32 +54,6 @@ public class AccessToken {
         result = 31 * result + (owner != null ? owner.hashCode() : 0);
         result = 31 * result + (scopes != null ? Arrays.hashCode(scopes) : 0);
         return result;
-    }
-
-    public class TypedResource {
-
-        public UUID   id;
-        public String type;
-
-        @Override
-        public boolean equals(Object o) {
-            if(this == o) return true;
-            if(!(o instanceof TypedResource)) return false;
-
-            TypedResource that = (TypedResource) o;
-
-            if(id != null ? !id.equals(that.id) : that.id != null) return false;
-            if(type != null ? !type.equals(that.type) : that.type != null) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = id != null ? id.hashCode() : 0;
-            result = 31 * result + (type != null ? type.hashCode() : 0);
-            return result;
-        }
     }
 
 }

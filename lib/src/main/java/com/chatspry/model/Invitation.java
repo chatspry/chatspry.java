@@ -7,10 +7,10 @@ import java.util.UUID;
  */
 public class Invitation {
 
-    public UUID   id;
-    public String detail;
-    public Convo  convo;
-    public User   inviter;
-    public User   guest;
+    public UUID          id;
+    public String        detail;
+    public TypedResource convo;
+    public TypedResource inviter;
+    public TypedResource guest;
 
 }
