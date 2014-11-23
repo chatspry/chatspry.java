@@ -1,20 +1,21 @@
 package com.chatspry;
 
 import com.chatspry.model.AccessToken;
-import com.chatspry.payload.*;
-import com.chatspry.response.ConvoResponse;
-import com.chatspry.response.InvitationResponse;
-import com.chatspry.response.RegistrationResponse;
+import com.chatspry.model.User;
+import com.chatspry.request.OAuthRequest;
+import com.chatspry.request.UserRequest;
 import com.chatspry.response.UserResponse;
 import com.google.gson.Gson;
+import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.client.Client;
 import retrofit.client.OkClient;
-import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 import retrofit.http.*;
 import rx.Observable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -24,77 +25,67 @@ public interface API {
 
     //region >> OAuth
 
+    /**
+     * Login as a user via OAuth payload
+     *
+     * @param payload The OAuth payload to login with
+     * @return An {@link rx.Observable} that emits the {@link com.chatspry.model.AccessToken}
+     */
     @POST("/v1/oauth/access")
-    public Observable<AccessToken> login(@Body LoginPayload payload);
+    public Observable<AccessToken> login(@Body OAuthRequest payload);
 
     //endregion
 
     //region >> User
 
+    /**
+     * Fetches a user from the API
+     *
+     * @param token The {@link com.chatspry.model.AccessToken} provided from OAuth login
+     * @param id          The user ID to lookup
+     * @return An {@link rx.Observable} that emits the {@link com.chatspry.model.User}
+     */
     @GET("/v1/user/{id}")
-    public Observable<UserResponse> getUser(@Path("id") UUID id);
+    public Observable<User> getUser(@Header("Authorization") AccessToken token,
+                                    @Path("id") UUID id);
 
+    /**
+     * Creates a user with the API
+     *
+     * When creating a guest user, a null {@link com.chatspry.model.AccessToken} should
+     * be used, and the {@link com.chatspry.request.UserRequest} should have a user with
+     * only {@link com.chatspry.model.User#guest} set to "true"
+     *
+     * @param token The {@link com.chatspry.model.AccessToken} provided from OAuth login
+     * @param id The user ID to create
+     * @return An {@link rx.Observable} that emits the {@link com.chatspry.model.User}
+     */
     @PUT("/v1/user/{id}")
-    public Observable<RegistrationResponse> registerUser(@Path("id") UUID id, @Body RegisterUserPayload payload);
+    public Observable<UserResponse> createUser(@Header("Authorization") AccessToken token,
+                                               @Path("id") UUID id,
+                                               @Body UserRequest request);
 
-    //endregion
 
-    //region >> Convo
-
-    @PUT("/v1/convo/{id}")
-    public Observable<ConvoResponse> createConvo(@Header("Authorization") String authToken,
-                                                 @Path("id") UUID id,
-                                                 @Body ConvoPayload payload);
-
-    @GET("/v1/convo/{id}")
-    public Observable<ConvoResponse> getConvo(@Header("Authorization") String authToken,
-                                              @Path("id") UUID id);
-
-    @PATCH("/v1/convo/{id}")
-    public Observable<ConvoResponse> updateConvo(@Header("Authorization") String authToken,
-                                                 @Path("id") UUID id,
-                                                 @Body ConvoPayload payload);
-
-    //endregion
-
-    //region >> Activity
-
-    @POST("/v1/activity")
-    public Observable<Response> createActivity(@Header("Authorization") String authToken,
-                                               @Body ActivityPayload payload);
-
-    //endregion
-
-    //region >> Invitation
-
-    @POST("/v1/invitation")
-    public Observable<InvitationResponse> createInvitation(@Header("Authorization") String authToken,
-                                                           @Body InvitationPayload payload);
-
-    @DELETE("/v1/invitation")
-    public Observable<Response> revokeInvitation(@Header("Authorization") String authToken,
-                                                 @Body InvitationPayload payload);
-
-    //endregion
-
-    //region >> Members
-
-    @POST("/v1/member")
-    public Observable<InvitationResponse> createMembership(@Header("Authorization") String authToken,
-                                                           @Body MembershipPayload payload);
-
-    @DELETE("/v1/member")
-    public Observable<Response> deleteMembership(@Header("Authorization") String authToken,
-                                                 @Body MembershipPayload payload);
-
+    /**
+     * Updates a user on the API
+     *
+     * @param token The {@link com.chatspry.model.AccessToken} provided from OAuth login
+     * @param id The user ID to update
+     * @param request A {@link com.chatspry.request.UserRequest} with the updated user
+     * @return An {@link rx.Observable} that emits the updated {@link com.chatspry.model.User}
+     */
+    @PATCH("/v1/user/{id}")
+    public Observable<User> updateUser(@Header("Authorization") AccessToken token,
+                                       @Path("id") UUID id,
+                                       @Body UserRequest request);
     //endregion
 
     public static class Builder {
 
         private String host;
-        private Gson   gson;
+        private Gson gson;
         private Client client;
-        private String userAgent;
+        private RequestInterceptor interceptor;
 
         public Builder setHost(String host) {
             this.host = host;
@@ -111,23 +102,24 @@ public interface API {
             return this;
         }
 
-        public Builder setUserAgent(String userAgent) {
-            this.userAgent = userAgent;
+        public Builder setRequestInterceptor(RequestInterceptor interceptor) {
+            this.interceptor = interceptor;
             return this;
         }
 
         public API build() {
-            if(host == null) host = "http://api.chatspry.org";
-            if(gson == null) gson = new Gson();
-            if(client == null) client = new OkClient();
-            if(userAgent == null) userAgent = "chatspry.java/1.0.0";
+            if (host == null) host = "http://api.chatspry.org";
+            if (gson == null) gson = new Gson();
+            if (client == null) client = new OkClient();
+            if (interceptor == null) interceptor =
+                    (request) -> request.addHeader("User-Agent", "chatspry.java/1.0.0");
 
             RestAdapter restAdapter = new RestAdapter.Builder()
                     .setEndpoint(host)
                     .setConverter(new GsonConverter(gson))
                     .setClient(client)
+                    .setRequestInterceptor(interceptor)
                     .build();
-
             return restAdapter.create(API.class);
         }
     }

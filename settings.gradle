@@ -1,4 +1,5 @@
 rootProject.name = 'chatspry.java'
 
-include 'lib'
+include ':lib'
+include ':demo'
 

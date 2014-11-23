@@ -7,8 +7,10 @@ import java.util.UUID;
  */
 public class Activity {
 
-    public UUID   id;
+    public UUID id;
     public String manner;
     public String message;
+    public String name;
+    public User user;
 
 }

@@ -2,78 +2,89 @@ package com.chatspry.test;
 
 import com.chatspry.API;
 import com.chatspry.model.AccessToken;
-import com.chatspry.payload.LoginPayload;
+import com.chatspry.model.Device;
+import com.chatspry.model.User;
+import com.chatspry.request.UserRequest;
+import com.chatspry.response.UserResponse;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.squareup.okhttp.mockwebserver.MockResponse;
+import com.squareup.okhttp.mockwebserver.MockWebServer;
+import com.squareup.okhttp.mockwebserver.RecordedRequest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import retrofit.client.Client;
-import retrofit.client.Request;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
-import rx.Observable;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.Collections;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 /**
- * Created by berwyn on 17/10/14.
+ * Created by berwyn on 22/11/2014.
  */
 @RunWith(JUnit4.class)
 public class ApiTest {
 
-    API client;
-    Gson   gson     = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
-    Client mockHttp = new Client() {
-        @Override
-        public Response execute(Request request) throws IOException {
-            URI uri = URI.create(request.getUrl());
-
-            String responseJson = "{}";
-            if(uri.getPath().contains("/oauth/access")) {
-                responseJson = gson.toJson(Fixtures.ACCESS_TOKEN, AccessToken.class);
-            }
-
-            return new Response(
-                    request.getUrl(),
-                    200,
-                    "nothing",
-                    Collections.EMPTY_LIST,
-                    new TypedByteArray("application/json", responseJson.getBytes()));
-        }
-    };
+    private Gson gson;
+    private API.Builder builder;
+    private MockWebServer server;
 
     @Before
     public void setup() {
-        client = new API.Builder().setClient(mockHttp).build();
+        server = new MockWebServer();
+        gson = new Gson();
+        builder = new API.Builder()
+                .setGson(gson);
+    }
+
+    @After
+    public void teardown() throws IOException {
+        server.shutdown();
     }
 
     @Test
-    public void testClientLogin() {
-        assertThat(client, notNullValue());
+    public void testCreateGuestUser() throws IOException, InterruptedException {
+        UserRequest request = new UserRequest();
+        request.clientSecret = "abc123";
+        request.clientID = "abc123";
+        request.scope = "read_user read_activity";
 
-        LoginPayload payload = new LoginPayload() {{
-            clientID = Fixtures.CLIENT_ID;
-            clientSecret = Fixtures.CLIENT_SECRET;
-            scope = "read_user read_activity";
-            identifier = "foo";
-            passphrase = "barbaz";
-            grantType = AccessToken.GRANT_TYPE_PASSWORD;
-        }};
+        User guest = new User();
+        guest.guest = true;
+        request.user = guest;
 
-        Observable<AccessToken> stream = client.login(payload);
-        AccessToken token = stream.toBlocking().single();
+        UserResponse serverResponse = new UserResponse();
+        serverResponse.user = new User();
+        serverResponse.access = new AccessToken();
+        serverResponse.device = new Device();
 
-        assertThat(token, notNullValue());
-        assertThat(token, equalTo(Fixtures.ACCESS_TOKEN));
-        assertThat(token.token, equalTo(Fixtures.ACCESS_TOKEN.token));
+        server.enqueue(new MockResponse().setBody(gson.toJson(serverResponse)));
+        server.play();
+
+        API api = builder
+                .setHost(server.getUrl("").toString())
+                .build();
+
+        api
+            .createUser(null, UUID.randomUUID(), request)
+            .doOnError(error -> System.out.println("Error during createUser"))
+            .subscribe(response -> {
+                assertThat(response.user, allOf(
+                        notNullValue(),
+                        hasProperty("id")
+                ));
+            });
+
+        RecordedRequest sentRequest = server.takeRequest();
+
+        UserRequest payload = gson.fromJson(new String(sentRequest.getBody(), "UTF-8"), UserRequest.class);
+        assertThat(request, allOf(
+                notNullValue(),
+                equalTo(payload)
+        ));
     }
 
 }

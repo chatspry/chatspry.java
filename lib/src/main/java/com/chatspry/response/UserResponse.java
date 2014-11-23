@@ -1,5 +1,7 @@
 package com.chatspry.response;
 
+import com.chatspry.model.AccessToken;
+import com.chatspry.model.Device;
 import com.chatspry.model.User;
 
 /**
@@ -8,5 +10,7 @@ import com.chatspry.model.User;
 public class UserResponse {
 
     public User user;
+    public AccessToken access;
+    public Device device;
 
 }
